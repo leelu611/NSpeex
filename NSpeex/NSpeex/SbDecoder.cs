@@ -5,9 +5,9 @@ namespace NSpeex
     /// <summary>
     /// Sideband Speex Decoder
     /// </summary>
-    public class SbDecoder:SbCodec,Decoder
+    public class SbDecoder:SbCodec,IDecoder
     {
-        protected Decoder lowdec;
+        protected IDecoder lowdec;
         protected Stereo stereo;
         protected bool enhanced;
         private float[] innov2;
@@ -23,7 +23,7 @@ namespace NSpeex
         {
             lowdec = new NbDecoder();
             ((NbDecoder)lowdec).nbinit();
-            lowdec.setPerceptualEnhancement(enhanced);
+            lowdec.PerceptualEnhancement = enhanced;
             base.wbinit();
             init(160, 40, 8, 640, .7f);
         }
@@ -34,7 +34,7 @@ namespace NSpeex
         {
             lowdec = new SbDecoder();
             ((SbDecoder)lowdec).wbinit();
-            lowdec.setPerceptualEnhancement(enhanced);
+            lowdec.PerceptualEnhancement = enhanced;
             base.uwbinit();
             init(320, 80, 8, 1280, .5f);
         }
@@ -56,13 +56,13 @@ namespace NSpeex
         /// <returns>
         /// 1 if a terminator was found, 0 if not.
         /// </returns>
-        public int decode(Bits bits,float[] vout)
+        public int Decode(Bits bits,float[] vout)
         {
             int i, sub, wideband, ret;
             float[] low_pi_gain, low_exc, low_innov;
 
             /* Decode the low-band */
-            ret = lowdec.decode(bits, x0d);
+            ret = lowdec.Decode(bits, x0d);
             if (ret != 0) 
             {
                return ret;
@@ -74,11 +74,11 @@ namespace NSpeex
               return 0;
             }
             /* Check "wideband bit" */
-            wideband = bits.peek(); 
+            wideband = bits.Peek(); 
             if (wideband!=0) {
               /*Regular wideband frame, read the submode*/
-              wideband  = bits.unpack(1);
-              submodeID = bits.unpack(3);
+              wideband  = bits.UnPack(1);
+              submodeID = bits.UnPack(3);
             } 
             else 
             {
@@ -161,7 +161,7 @@ namespace NSpeex
                     float g;
                     int quant;
 
-                    quant = bits.unpack(5);
+                    quant = bits.UnPack(5);
                     g     = (float)Math.Exp(((double)quant-10)/8.0);       
                     g     /= filter_ratio;
         
@@ -172,14 +172,14 @@ namespace NSpeex
                 else
                 {
                     float gc, scale;
-                    int qgc = bits.unpack(4);
+                    int qgc = bits.UnPack(4);
 
                     for (i=subIdx;i<subIdx+subframeSize;i++)
                       el+=low_exc[i]*low_exc[i];
 
                     gc    = (float)Math.Exp((1/3.7f)*qgc-2);
                     scale = gc*(float)Math.Sqrt(1+el)/filter_ratio;
-                    submodes[submodeID].innovation.unquant(excBuf, subIdx, subframeSize, bits); 
+                    submodes[submodeID].innovation.UnQuant(excBuf, subIdx, subframeSize, bits); 
 
                     for (i=subIdx;i<subIdx+subframeSize;i++)
                       excBuf[i]*=scale;
@@ -187,7 +187,7 @@ namespace NSpeex
                     {
                         for (i=0;i<subframeSize;i++)
                         innov2[i]=0;
-                        submodes[submodeID].innovation.unquant(innov2, 0, subframeSize, bits); 
+                        submodes[submodeID].innovation.UnQuant(innov2, 0, subframeSize, bits); 
                         for (i=0;i<subframeSize;i++)
                             innov2[i]*=scale*(1/2.5f);
                         for (i=0;i<subframeSize;i++)
@@ -316,26 +316,16 @@ namespace NSpeex
         /// <param name="frameSize">
         /// the size of a frame of mono audio samples.
         /// </param>
-        public void decodeStereo(float[] data,int frameSize)
+        public void DecodeStereo(float[] data,int frameSize)
         {
             stereo.decode(data, frameSize);
         }
-        /// <summary>
-        /// Enables or disables perceptual enhancement.
-        /// </summary>
-        /// <param name="enhanced"></param>
-        public void setPerceptualEnhancement(bool enhanced)
-        {
-            this.enhanced = enhanced;
-        }
+       
 
-        /// <summary>
-        /// Returns whether perceptual enhancement is enabled or disabled.
-        /// </summary>
-        /// <returns></returns>
-        public bool getPerceptualEnhancement()
+        public bool PerceptualEnhancement
         {
-            return enhanced;
+            get { return enhanced; }
+            set { enhanced = value; }
         }
     }
 }

@@ -86,46 +86,25 @@
             uwbSubModes[1] = new SubMode(0, 0, 1, 0, highLU, null, null, .75f, .75f, -1, 2);
             return uwbSubModes;
         }
-        /// <summary>
-        /// Returns the size of a frame (ex: 160 samples for a narrowband frame,
-        /// 320 for wideband and 640 for ultra-wideband).
-        /// 
-        /// </summary>
-        /// <returns>the size of a frame (number of audio samples in a frame).</returns>
-        public int getFrameSize()
+
+
+        public new float[] Excitation
         {
-            return fullFrameSize;
-        }
-        /// <summary>
-        /// whether or not we are using Discontinuous Transmission encoding.
-        /// </summary>
-        /// <returns></returns>
-        public bool getDtx()
-        {
-            // TODO - should return DTX for the NbCodec
-            return dtx_enabled != 0;
-        }
-        /// <summary>
-        /// Returns the excitation array.
-        /// </summary>
-        /// <returns></returns>
-        public float[] getExc()
-        {
-            int i;
-            float[] excTmp = new float[fullFrameSize];
-            for (i = 0; i < frameSize; i++)
-                excTmp[2 * i] = 2 * excBuf[excIdx + i];
-            return excTmp;
-        }
-        /// <summary>
-        /// Returns the innovation array.
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public float[] getInnov()
-        {
-            return getExc();
+            get
+            {
+                int i;
+                float[] excTmp = new float[fullFrameSize];
+                for (i = 0; i < frameSize; i++)
+                    excTmp[2 * i] = 2 * excBuf[excIdx + i];
+                return excTmp;
+            }
         }
 
+
+        public new float[] Innovation
+        {
+            get { return Excitation; }
+            
+        }
     }
 }

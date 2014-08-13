@@ -10,7 +10,7 @@
         /// Long Term Prediction Quantification (Forced Pitch).
         /// </summary>
         /// <returns>pitch</returns>
-        public override sealed int quant(float[] target, float[] sw, int sws, float[] ak, float[] awk1, float[] awk2,
+        public override sealed int Quant(float[] target, float[] sw, int sws, float[] ak, float[] awk1, float[] awk2,
                          float[] exc, int es, int start, int end, float pitch_coef, int p,
                          int nsf, Bits bits, float[] exc2, int e2s, float[] r, int complexity)
         {
@@ -37,7 +37,7 @@
         /// <param name="subframe_offset"></param>
         /// <param name="last_pitch_gain"></param>
         /// <returns>pitch</returns>
-        public override sealed int unquant(float[] exc, int es, int start, float pitch_coef,
+        public override sealed int UnQuant(float[] exc, int es, int start, float pitch_coef,
                            int nsf, float[] gain_val, Bits bits,
                            int count_lost, int subframe_offset, float last_pitch_gain)
         {

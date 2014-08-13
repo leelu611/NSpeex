@@ -44,7 +44,7 @@
         /// <param name="li"></param>
         protected void unpackPlus(float[] lsp, int[] tab, Bits bits, float k, int ti, int li)
         {
-            int id = bits.unpack(6);
+            int id = bits.UnPack(6);
             for (int i = 0; i < ti; i++)
                 lsp[i + li] += k * (float)tab[id * ti + i];
         }

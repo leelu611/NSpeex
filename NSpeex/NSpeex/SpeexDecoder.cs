@@ -11,14 +11,15 @@
     /// </summary>
     public class SpeexDecoder
     {
-        public const string VERSION = "Java Speex Decoder v0.9.7 ($Revision: 1.4 $)";
+        public const string Version = "Java Speex Decoder v0.9.7 ($Revision: 1.4 $)";
+        
         private int sampleRate;
         private int channels;
         private float[] decodedData;
         private short[] outputData;
         private int outputSize;
         private Bits bits;
-        private Decoder decoder;
+        private IDecoder decoder;
         private int frameSize;
         /// <summary>
         /// Constructor
@@ -67,7 +68,7 @@
                     return false;
             }
             /* initialize the speex decoder */
-            decoder.setPerceptualEnhancement(enhanced);
+            decoder.PerceptualEnhancement = enhanced;
             /* set decoder format and properties */
             this.frameSize = decoder.getFrameSize();
             this.sampleRate = sampleRate;
@@ -76,7 +77,7 @@
             decodedData = new float[secondSize * 2];
             outputData = new short[secondSize * 2];
             outputSize = 0;
-            bits.init();
+            bits.Init();
             return true;
 
         }
@@ -115,7 +116,7 @@
             else
             {
                 /* read packet bytes into bitstream */
-                bits.read_from(data, offset, len);
+                bits.ReadFrom(data, offset, len);
                 processData(false);
             }
         }
@@ -129,11 +130,11 @@
         {
             /* decode the bitstream */
             if (lost)
-                decoder.decode(null, decodedData);
+                decoder.Decode(null, decodedData);
             else
-                decoder.decode(bits, decodedData);
+                decoder.Decode(bits, decodedData);
             if (channels == 2)
-                decoder.decodeStereo(decodedData, frameSize);
+                decoder.DecodeStereo(decodedData, frameSize);
             for (int i = 0; i < frameSize * channels; i++)
             {
                 if (decodedData[i] > 32767.0f)

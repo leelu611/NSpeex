@@ -5,7 +5,7 @@
     /// This class contains all the basic structures needed by the Narrowband
     /// encoder and decoder.
     /// </summary>
-    public abstract class NbCodec:Codebook
+    public abstract class NbCodec:Codebook,ICoder
     {
         /// <summary>
         /// Very small initial value for some of the buffers. 
@@ -25,10 +25,11 @@
         public const int NB_SUBMODE_BITS = 4;
 
         public static readonly  float[] exc_gain_quant_scal1 = new float[]{ -0.35f, 0.05f };
+
         public static readonly float[] exc_gain_quant_scal3 = new float[]
         {
             -2.794750f, -1.810660f,
-            -1.169850f, -0.848119f, 
+            -1.169850f, -0.848119f,
             -0.587190f, -0.329818f,
             -0.063266f, 0.282826f
         };
@@ -94,6 +95,7 @@
             // Initialize narrwoband parameters and variables
             init(160, 40, 10, 640);
         }
+
         /// <summary>
         /// Initialisation.
         /// </summary>
@@ -131,7 +133,8 @@
             old_qlsp = new float[lpcSize];
             interp_qlsp = new float[lpcSize];
             interp_qlpc = new float[lpcSize + 1];
-            mem_sp = new float[5 * lpcSize]; // TODO - check why 5 (why not 2 or 1)
+            
+            mem_sp = new float[5 * lpcSize]; 
             pi_gain = new float[nbSubframes];
 
             awk1 = new float[lpcSize + 1];
@@ -140,8 +143,9 @@
 
             voc_m1 = voc_m2 = voc_mean = 0;
             voc_offset = 0;
-            dtx_enabled = 0; // disabled by default
+            dtx_enabled = 0;
         }
+
         /// <summary>
         /// Build narrowband submodes
         /// </summary>
@@ -187,56 +191,37 @@
             return nbSubModes;
         }
 
-
-        /// <summary>
-        /// Returns the size of a frame (ex: 160 samples for a narrowband frame,
-        /// 320 for wideband and 640 for ultra-wideband).
-        /// </summary>
-        /// <returns>the size of a frame (number of audio samples in a frame).</returns>
-        public int getFrameSize()
+        public int FrameSize
         {
-            return frameSize;
-        }
-        /// <summary>
-        /// Returns whether or not we are using Discontinuous Transmission encoding.
-        /// </summary>
-        /// <returns>
-        /// whether or not we are using Discontinuous Transmission encoding.
-        /// </returns>
-        public bool getDtx()
-        {
-            return dtx_enabled != 0;
-        }
-        /// <summary>
-        /// Returns the Pitch Gain array.
-        /// </summary>
-        /// <returns>the Pitch Gain array.</returns>
-        public float[] getPiGain()
-        {
-            return pi_gain;
-        }
-        /// <summary>
-        /// Returns the excitation array.
-        /// </summary>
-        /// <returns>
-        /// the excitation array.
-        /// </returns>
-        public float[] getExc()
-        {
-            float[] excTmp = new float[frameSize];
-            System.Array.Copy(excBuf, excIdx, excTmp, 0, frameSize);
-            return excTmp;
-        }
-        /// <summary>
-        /// Returns the innovation array.
-        /// </summary>
-        /// <returns>
-        /// the innovation array.
-        /// </returns>
-        public float[] getInnov()
-        {
-            return innov;
+            get { return frameSize; }
         }
 
+        public bool Dtx
+        {
+            get { return dtx_enabled != 0; }
+        }
+
+        public float[] PitchGain
+        {
+            get { return pi_gain; }
+        }
+
+        public float[] Excitation
+        {
+            get
+            {
+                float[] excTmp = new float[frameSize];
+                System.Array.Copy(excBuf, excIdx, excTmp, 0, frameSize);
+                return excTmp; 
+            }
+        }
+
+        public float[] Innovation
+        {
+            get
+            {
+                return innov;
+            }
+        }
     }
 }

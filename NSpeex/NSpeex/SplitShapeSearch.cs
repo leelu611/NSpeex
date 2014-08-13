@@ -1,51 +1,73 @@
-﻿namespace NSpeex
+﻿/*
+  
+   Copyright [2014] [alking of copyright morln]
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License. 
+
+ */
+namespace NSpeex
 {
     /// <summary>
     /// Split shape codebook search
     /// </summary>
     public class SplitShapeSearch:CbSearch
     {
-        public const int MAX_COMPLEXITY = 10;
-        private int subframesize;
-        private int subvect_size;
-        private int nb_subvect;
-        private int[] shape_cb;
-        private int shape_cb_size;
-        private int shape_bits;
-        private int have_sign;
-        private int[] ind;
-        private int[] signs;
-        private float[] t, e, E, r2;
-        private float[][] ot, nt;
-        private int[][] nind, oind;
+        public const int MaxComplexity = 10;
 
-        public SplitShapeSearch(int subframesize, int subvect_size, int nb_subvect, int[] shape_cb, int shape_bits, int have_sign)
+        private int _subFrameSize;
+        private readonly int _subVectSize;
+        private readonly int _nbSubvect;
+        private readonly int[] _shapeCb;
+        private readonly int _shapeCbSize;
+        private readonly int _shapeBits;
+        private readonly int _haveSign;
+        private readonly int[] _ind;
+        private readonly int[] _signs;
+        private readonly float[] t;
+        private readonly float[] e;
+        private readonly float[] E;
+        private readonly float[] r2;
+        private float[][] _ot, _nt;
+        private readonly int[][] _nind;
+        private readonly int[][] _oind;
+
+        public SplitShapeSearch(int subFrameSize, int subVectSize, int nbSubvect, int[] shapeCb, int shapeBits, int haveSign)
         {
-            this.subframesize = subframesize;
-            this.subvect_size = subvect_size;
-            this.nb_subvect   = nb_subvect;
-            this.shape_cb     = shape_cb;
-            this.shape_bits   = shape_bits;
-            this.have_sign    = have_sign;  
-            this.ind          = new int[nb_subvect]; 
-            this.signs        = new int[nb_subvect];
-            shape_cb_size = 1<<shape_bits;
-            ot=new float[MAX_COMPLEXITY][];
-            nt=new float[MAX_COMPLEXITY][];
-            oind=new int[MAX_COMPLEXITY][];
-            nind=new int[MAX_COMPLEXITY][];
-            for (int i = 0; i < MAX_COMPLEXITY; i++)
+            _subFrameSize = subFrameSize;
+            _subVectSize = subVectSize;
+            _nbSubvect   = nbSubvect;
+            _shapeCb     = shapeCb;
+            _shapeBits   = shapeBits;
+            _haveSign    = haveSign;  
+            _ind          = new int[nbSubvect]; 
+            _signs        = new int[nbSubvect];
+            _shapeCbSize = 1<<shapeBits;
+            _ot=new float[MaxComplexity][];
+            _nt=new float[MaxComplexity][];
+            _oind=new int[MaxComplexity][];
+            _nind=new int[MaxComplexity][];
+            for (int i = 0; i < MaxComplexity; i++)
             {
-                ot[i] = new float[subframesize];
-                nt[i] = new float[subframesize];
-                oind[i] = new int[nb_subvect];
-                nind[i] = new int[nb_subvect];
+                _ot[i] = new float[subFrameSize];
+                _nt[i] = new float[subFrameSize];
+                _oind[i] = new int[nbSubvect];
+                _nind[i] = new int[nbSubvect];
                      
             }
-            t = new float[subframesize];
-            e = new float[subframesize];
-            r2 = new float[subframesize];
-            E = new float[shape_cb_size];
+            t = new float[subFrameSize];
+            e = new float[subFrameSize];
+            r2 = new float[subFrameSize];
+            E = new float[_shapeCbSize];
         }
 
         /// <summary>
@@ -62,8 +84,8 @@
         /// <param name="r"></param>
         /// <param name="bits">Speex bits buffer.</param>
         /// <param name="complexity"></param>
-        public override sealed void quant(float[] target, float[] ak, float[] awk1, float[] awk2,
-                          int p, int nsf, float[] exc, int es, float[] r,
+        public override sealed void Quant(float[] target, float[] ak, float[] awk1, float[] awk2,
+                           int p, int nsf, float[] exc, int es, float[] r,
                           Bits bits, int complexity)
         {
             int i, j, k, m, n, q;
@@ -76,7 +98,7 @@
             if (N > 10)
                 N = 10;
 
-            resp = new float[shape_cb_size * subvect_size];
+            resp = new float[_shapeCbSize * _subVectSize];
 
             best_index = new int[N];
             best_dist = new float[N];
@@ -85,45 +107,45 @@
 
             for (i = 0; i < N; i++)
             {
-                for (j = 0; j < nb_subvect; j++)
-                    nind[i][j] = oind[i][j] = -1;
+                for (j = 0; j < _nbSubvect; j++)
+                    _nind[i][j] = _oind[i][j] = -1;
             }
 
             for (j = 0; j < N; j++)
                 for (i = 0; i < nsf; i++)
-                    ot[j][i] = target[i];
+                    _ot[j][i] = target[i];
 
             //    System.arraycopy(target, 0, t, 0, nsf);
 
             /* Pre-compute codewords response and energy */
-            for (i = 0; i < shape_cb_size; i++)
+            for (i = 0; i < _shapeCbSize; i++)
             {
                 int res;
                 int shape;
 
-                res = i * subvect_size;
-                shape = i * subvect_size;
+                res = i * _subVectSize;
+                shape = i * _subVectSize;
 
                 /* Compute codeword response using convolution with impulse response */
-                for (j = 0; j < subvect_size; j++)
+                for (j = 0; j < _subVectSize; j++)
                 {
                     resp[res + j] = 0;
                     for (k = 0; k <= j; k++)
-                        resp[res + j] += 0.03125f * shape_cb[shape + k] * r[j - k];
+                        resp[res + j] += 0.03125f * _shapeCb[shape + k] * r[j - k];
                 }
 
                 /* Compute codeword energy */
                 E[i] = 0;
-                for (j = 0; j < subvect_size; j++)
+                for (j = 0; j < _subVectSize; j++)
                     E[i] += resp[res + j] * resp[res + j];
             }
 
             for (j = 0; j < N; j++)
                 odist[j] = 0;
             /*For all subvectors*/
-            for (i = 0; i < nb_subvect; i++)
+            for (i = 0; i < _nbSubvect; i++)
             {
-                int offset = i * subvect_size;
+                int offset = i * _subVectSize;
                 /*"erase" nbest list*/
                 for (j = 0; j < N; j++)
                     ndist[j] = -1;
@@ -132,21 +154,21 @@
                 for (j = 0; j < N; j++)
                 {
                     /*Find new n-best based on previous n-best j*/
-                    if (have_sign != 0)
-                        VQ.nbest_sign(ot[j], offset, resp, subvect_size, shape_cb_size, E, N, best_index, best_dist);
+                    if (_haveSign != 0)
+                        VQ.nbest_sign(_ot[j], offset, resp, _subVectSize, _shapeCbSize, E, N, best_index, best_dist);
                     else
-                        VQ.nbest(ot[j], offset, resp, subvect_size, shape_cb_size, E, N, best_index, best_dist);
+                        VQ.nbest(_ot[j], offset, resp, _subVectSize, _shapeCbSize, E, N, best_index, best_dist);
 
                     /*For all new n-bests*/
                     for (k = 0; k < N; k++)
                     {
                         float[] ct;
                         float err = 0;
-                        ct = ot[j];
+                        ct = _ot[j];
                         /*update target*/
 
                         /*previous target*/
-                        for (m = offset; m < offset + subvect_size; m++)
+                        for (m = offset; m < offset + _subVectSize; m++)
                             t[m] = ct[m];
 
                         /* New code: update only enough of the target to calculate error*/
@@ -155,47 +177,47 @@
                             int res;
                             float sign = 1;
                             rind = best_index[k];
-                            if (rind >= shape_cb_size)
+                            if (rind >= _shapeCbSize)
                             {
                                 sign = -1;
-                                rind -= shape_cb_size;
+                                rind -= _shapeCbSize;
                             }
-                            res = rind * subvect_size;
+                            res = rind * _subVectSize;
                             if (sign > 0)
-                                for (m = 0; m < subvect_size; m++)
+                                for (m = 0; m < _subVectSize; m++)
                                     t[offset + m] -= resp[res + m];
                             else
-                                for (m = 0; m < subvect_size; m++)
+                                for (m = 0; m < _subVectSize; m++)
                                     t[offset + m] += resp[res + m];
                         }
 
                         /*compute error (distance)*/
                         err = odist[j];
-                        for (m = offset; m < offset + subvect_size; m++)
+                        for (m = offset; m < offset + _subVectSize; m++)
                             err += t[m] * t[m];
                         /*update n-best list*/
                         if (err < ndist[N - 1] || ndist[N - 1] < -.5)
                         {
 
                             /*previous target (we don't care what happened before*/
-                            for (m = offset + subvect_size; m < nsf; m++)
+                            for (m = offset + _subVectSize; m < nsf; m++)
                                 t[m] = ct[m];
                             /* New code: update the rest of the target only if it's worth it */
-                            for (m = 0; m < subvect_size; m++)
+                            for (m = 0; m < _subVectSize; m++)
                             {
                                 float g;
                                 int rind;
                                 float sign = 1;
                                 rind = best_index[k];
-                                if (rind >= shape_cb_size)
+                                if (rind >= _shapeCbSize)
                                 {
                                     sign = -1;
-                                    rind -= shape_cb_size;
+                                    rind -= _shapeCbSize;
                                 }
 
-                                g = sign * 0.03125f * shape_cb[rind * subvect_size + m];
-                                q = subvect_size - m;
-                                for (n = offset + subvect_size; n < nsf; n++, q++)
+                                g = sign * 0.03125f * _shapeCb[rind * _subVectSize + m];
+                                q = _subVectSize - m;
+                                for (n = offset + _subVectSize; n < nsf; n++, q++)
                                     t[n] -= g * r[q];
                             }
 
@@ -206,17 +228,17 @@
                                 {
                                     for (n = N - 1; n > m; n--)
                                     {
-                                        for (q = offset + subvect_size; q < nsf; q++)
-                                            nt[n][q] = nt[n - 1][q];
-                                        for (q = 0; q < nb_subvect; q++)
-                                            nind[n][q] = nind[n - 1][q];
+                                        for (q = offset + _subVectSize; q < nsf; q++)
+                                            _nt[n][q] = _nt[n - 1][q];
+                                        for (q = 0; q < _nbSubvect; q++)
+                                            _nind[n][q] = _nind[n - 1][q];
                                         ndist[n] = ndist[n - 1];
                                     }
-                                    for (q = offset + subvect_size; q < nsf; q++)
-                                        nt[m][q] = t[q];
-                                    for (q = 0; q < nb_subvect; q++)
-                                        nind[m][q] = oind[j][q];
-                                    nind[m][i] = best_index[k];
+                                    for (q = offset + _subVectSize; q < nsf; q++)
+                                        _nt[m][q] = t[q];
+                                    for (q = 0; q < _nbSubvect; q++)
+                                        _nind[m][q] = _oind[j][q];
+                                    _nind[m][i] = best_index[k];
                                     ndist[m] = err;
                                     break;
                                 }
@@ -231,38 +253,38 @@
                 /* just swap pointers instead of a long copy */
                 {
                     float[][] tmp2;
-                    tmp2 = ot;
-                    ot = nt;
-                    nt = tmp2;
+                    tmp2 = _ot;
+                    _ot = _nt;
+                    _nt = tmp2;
                 }
                 for (j = 0; j < N; j++)
-                    for (m = 0; m < nb_subvect; m++)
-                        oind[j][m] = nind[j][m];
+                    for (m = 0; m < _nbSubvect; m++)
+                        _oind[j][m] = _nind[j][m];
                 for (j = 0; j < N; j++)
                     odist[j] = ndist[j];
             }
 
             /*save indices*/
-            for (i = 0; i < nb_subvect; i++)
+            for (i = 0; i < _nbSubvect; i++)
             {
-                ind[i] = nind[0][i];
-                bits.pack(ind[i], shape_bits + have_sign);
+                _ind[i] = _nind[0][i];
+                bits.Pack(_ind[i], _shapeBits + _haveSign);
             }
 
             /* Put everything back together */
-            for (i = 0; i < nb_subvect; i++)
+            for (i = 0; i < _nbSubvect; i++)
             {
                 int rind;
                 float sign = 1;
-                rind = ind[i];
-                if (rind >= shape_cb_size)
+                rind = _ind[i];
+                if (rind >= _shapeCbSize)
                 {
                     sign = -1;
-                    rind -= shape_cb_size;
+                    rind -= _shapeCbSize;
                 }
 
-                for (j = 0; j < subvect_size; j++)
-                    e[subvect_size * i + j] = sign * 0.03125f * shape_cb[rind * subvect_size + j];
+                for (j = 0; j < _subVectSize; j++)
+                    e[_subVectSize * i + j] = sign * 0.03125f * _shapeCb[rind * _subVectSize + j];
             }
             /* Update excitation */
             for (j = 0; j < nsf; j++)
@@ -273,6 +295,7 @@
             for (j = 0; j < nsf; j++)
                 target[j] -= r2[j];
         }
+
         /// <summary>
         /// Codebook Search Unquantification (Split Shape).
         /// </summary>
@@ -280,29 +303,29 @@
         /// <param name="es">position in excitation array.</param>
         /// <param name="nsf">number of samples in subframe.</param>
         /// <param name="bits">Speex bits buffer.</param>
-        public override sealed void unquant(float[] exc, int es, int nsf, Bits bits)
+        public override sealed void UnQuant(float[] exc, int es, int nsf, Bits bits)
         {
             int i, j;
 
             /* Decode codewords and gains */
-            for (i = 0; i < nb_subvect; i++)
+            for (i = 0; i < _nbSubvect; i++)
             {
-                if (have_sign != 0)
-                    signs[i] = bits.unpack(1);
+                if (_haveSign != 0)
+                    _signs[i] = bits.UnPack(1);
                 else
-                    signs[i] = 0;
-                ind[i] = bits.unpack(shape_bits);
+                    _signs[i] = 0;
+                _ind[i] = bits.UnPack(_shapeBits);
             }
 
             /* Compute decoded excitation */
-            for (i = 0; i < nb_subvect; i++)
+            for (i = 0; i < _nbSubvect; i++)
             {
                 float s = 1.0f;
-                if (signs[i] != 0)
+                if (_signs[i] != 0)
                     s = -1.0f;
-                for (j = 0; j < subvect_size; j++)
+                for (j = 0; j < _subVectSize; j++)
                 {
-                    exc[es + subvect_size * i + j] += s * 0.03125f * (float)shape_cb[ind[i] * subvect_size + j];
+                    exc[es + _subVectSize * i + j] += s * 0.03125f * (float)_shapeCb[_ind[i] * _subVectSize + j];
                 }
             }
         }

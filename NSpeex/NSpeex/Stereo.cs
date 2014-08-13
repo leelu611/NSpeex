@@ -49,23 +49,23 @@ namespace NSpeex
             balance = (e_left + 1) / (e_right + 1);
             e_ratio = e_tot / (1 + e_left + e_right);
             /*Quantization*/
-            bits.pack(14, 5);
-            bits.pack(SPEEX_INBAND_STEREO, 4);
+            bits.Pack(14, 5);
+            bits.Pack(SPEEX_INBAND_STEREO, 4);
             balance = (float)(4 * Math.Log(balance));
 
             /*Pack balance*/
             if (balance > 0)
-                bits.pack(0, 1);
+                bits.Pack(0, 1);
             else
-                bits.pack(1, 1);
+                bits.Pack(1, 1);
             balance = (float)Math.Floor(.5f + Math.Abs(balance));
             if (balance > 30)
                 balance = 31;
-            bits.pack((int)balance, 5);
+            bits.Pack((int)balance, 5);
 
             /*Quantize energy ratio*/
             tmp = VQ.index(e_ratio, e_ratio_quant, 4);
-            bits.pack(tmp, 2);
+            bits.Pack(tmp, 2);
         }
 
         /// <summary>
@@ -111,11 +111,11 @@ namespace NSpeex
         {
             float sign = 1;
             int tmp;
-            if (bits.unpack(1) != 0)
+            if (bits.UnPack(1) != 0)
                 sign = -1;
-            tmp = bits.unpack(5);
+            tmp = bits.UnPack(5);
             balance = (float)Math.Exp(sign * .25f * tmp);
-            tmp = bits.unpack(2);
+            tmp = bits.UnPack(2);
             e_ratio = e_ratio_quant[tmp];
         }
     }

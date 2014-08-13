@@ -35,12 +35,12 @@
             for (i = 0; i < order; i++)
                 qlsp[i] *= 256;
             id = lsp_quant(qlsp, 0, Codebook.high_lsp_cdbk, 64, order);
-            bits.pack(id, 6);
+            bits.Pack(id, 6);
 
             for (i = 0; i < order; i++)
                 qlsp[i] *= 2;
             id = lsp_weight_quant(qlsp, 0, quant_weight, 0, Codebook.high_lsp_cdbk2, 64, order);
-            bits.pack(id, 6);
+            bits.Pack(id, 6);
 
             for (i = 0; i < order; i++)
                 qlsp[i] *= 0.0019531f;

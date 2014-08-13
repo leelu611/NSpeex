@@ -5,7 +5,7 @@ namespace NSpeex
     /// <summary>
     /// Narrowband Speex Encoder
     /// </summary>
-    public class NbEncoder : NbCodec,Encoder
+    public class NbEncoder : NbCodec,IEncoder
     {
         /// <summary>
         /// The Narrowband Quality map indicates which narrowband submode to use for the given narrowband quality setting
@@ -117,7 +117,7 @@ namespace NSpeex
             // Initialize narrwoband parameters and variables
             init(160, 40, 10, 640);
         }
-        public int encode(Bits bits, float[] vin)
+        public int Encode(Bits bits, float[] vin)
         {
             int i;
             float[] res, target, mem;
@@ -287,10 +287,10 @@ namespace NSpeex
                   float thresh;
                   v1=(int)Math.Floor(vbr_quality);
                   if (v1==10)
-                    thresh = Vbr.nb_thresh[mode][v1];
+                    thresh = NSpeex.Vbr.nb_thresh[mode][v1];
                   else
-                    thresh = (vbr_quality-v1)*Vbr.nb_thresh[mode][v1+1] +
-                             (1+v1-vbr_quality)*Vbr.nb_thresh[mode][v1];
+                      thresh = (vbr_quality - v1) * NSpeex.Vbr.nb_thresh[mode][v1 + 1] +
+                             (1 + v1 - vbr_quality) * NSpeex.Vbr.nb_thresh[mode][v1];
                   if (relative_quality > thresh && 
                       relative_quality-thresh<min_diff)
                   {
@@ -349,10 +349,10 @@ namespace NSpeex
             }
 
             /* First, transmit a zero for narrowband */
-            bits.pack(0, 1);
+            bits.Pack(0, 1);
 
             /* Transmit the sub-mode we use for this frame */
-            bits.pack(submodeID, NB_SUBMODE_BITS);
+            bits.Pack(submodeID, NB_SUBMODE_BITS);
 
             /* If null mode (no transmission), just set a couple things to zero*/
             if (submodes[submodeID] == null)
@@ -394,7 +394,7 @@ namespace NSpeex
             /*If we use low bit-rate pitch mode, transmit open-loop pitch*/
             if (submodes[submodeID].lbr_pitch!=-1)
             {
-              bits.pack(ol_pitch-min_pitch, 7);
+              bits.Pack(ol_pitch-min_pitch, 7);
             } 
 
             if (submodes[submodeID].forced_pitch_gain != 0)
@@ -405,7 +405,7 @@ namespace NSpeex
                 quant=15;
               if (quant<0)
                 quant=0;
-              bits.pack(quant, 4);
+              bits.Pack(quant, 4);
               ol_pitch_coef=(float) 0.066667*quant;
             }
 
@@ -417,7 +417,7 @@ namespace NSpeex
               if (qe>31)
                 qe=31;
               ol_gain = (float) Math.Exp(qe/3.5);
-              bits.pack(qe, 5);
+              bits.Pack(qe, 5);
             }
 
             /* Special case for first frame */
@@ -561,7 +561,7 @@ namespace NSpeex
                 pit_max=offset;
 
               /* Perform pitch search */
-              pitchval = submodes[submodeID].ltp.quant(target, swBuf, sw, interp_qlpc, bw_lpc1, bw_lpc2,
+              pitchval = submodes[submodeID].ltp.Quant(target, swBuf, sw, interp_qlpc, bw_lpc1, bw_lpc2,
                                                        excBuf, exc, pit_min, pit_max, ol_pitch_coef, lpcSize,
                                                        subframeSize, bits, exc2Buf, exc2, syn_resp, complexity);
 
@@ -601,12 +601,12 @@ namespace NSpeex
                   ener=(float)Math.Log(ener);
                   if (submodes[submodeID].have_subframe_gain==3) {
                     qe = VQ.index(ener, exc_gain_quant_scal3, 8);
-                    bits.pack(qe, 3);
+                    bits.Pack(qe, 3);
                     ener=exc_gain_quant_scal3[qe];
                   }
                   else {
                     qe = VQ.index(ener, exc_gain_quant_scal1, 2);
-                    bits.pack(qe, 1);
+                    bits.Pack(qe, 1);
                     ener=exc_gain_quant_scal1[qe];               
                   }
                   ener=(float)Math.Exp(ener);
@@ -629,7 +629,7 @@ namespace NSpeex
         //      if (submodes[submodeID].innovation != null)
         //      {
                 /* Codebook search */
-                submodes[submodeID].innovation.quant(target, interp_qlpc, bw_lpc1, bw_lpc2,
+                submodes[submodeID].innovation.Quant(target, interp_qlpc, bw_lpc1, bw_lpc2,
                                                      lpcSize, subframeSize, innov,
                                                      innovptr, syn_resp, bits, complexity);
 
@@ -649,7 +649,7 @@ namespace NSpeex
         //            innov2[i]=0;
                   for (i=0;i<subframeSize;i++)
                     target[i]*=2.2f;
-                  submodes[submodeID].innovation.quant(target, interp_qlpc, bw_lpc1, bw_lpc2, 
+                  submodes[submodeID].innovation.Quant(target, interp_qlpc, bw_lpc1, bw_lpc2, 
                                                        lpcSize, subframeSize, innov2, 0,
                                                        syn_resp, bits, complexity);
                   for (i=0;i<subframeSize;i++)
@@ -686,10 +686,10 @@ namespace NSpeex
             if (submodeID==1)
             {
               if (dtx_count != 0) {
-                bits.pack(15, 4);
+                bits.Pack(15, 4);
               }
               else {
-                bits.pack(0, 4);
+                bits.Pack(0, 4);
               }
             }
 
@@ -890,6 +890,142 @@ namespace NSpeex
         public int getEncodedFrameSize()
         {
             return frameSize;
+        }
+
+
+        public int EncodedFrameSize
+        {
+            get { return frameSize; }
+        }
+
+        public int Quality
+        {
+            set
+            {
+                int quality = value;
+                if (quality < 0)
+                {
+                    quality = 0;
+                }
+                if (quality > 10)
+                {
+                    quality = 10;
+                }
+                submodeID = submodeSelect = NB_QUALITY_MAP[quality];
+            }
+        }
+
+        public int BitRate
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public int Mode
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public bool Vbr
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public bool Vad
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public new int Dtx
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public float VbrQuality
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public int Complexity
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public int SamleRate
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public int LoodAhead
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public float RelativeQuality
+        {
+            get { throw new NotImplementedException(); }
         }
     }
 }

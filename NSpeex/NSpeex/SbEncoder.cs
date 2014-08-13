@@ -5,7 +5,7 @@ namespace NSpeex
     /// <summary>
     /// Wideband Speex Encoder
     /// </summary>
-    public class SbEncoder:SbCodec,Encoder
+    public class SbEncoder:SbCodec,IEncoder
     {
         /// <summary>
         /// The Narrowband Quality map indicates which narrowband submode
@@ -22,7 +22,7 @@ namespace NSpeex
         /// to use for the given ultra-wideband quality setting
         /// </summary>
         public static readonly int[] UWB_QUALITY_MAP = new int[] { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-        protected Encoder lowenc;
+        protected IEncoder lowenc;
 
         private float[] x1d;
         private float[] h0_mem;
@@ -131,13 +131,14 @@ namespace NSpeex
 
             abr_count = 0;
         }
+
         /// <summary>
         /// Encode the given input signal.
         /// </summary>
         /// <param name="bits">Speex bits buffer.</param>
         /// <param name="vin">the raw mono audio frame to encode</param>
         /// <returns>1 if successful.</returns>
-        public int encode(Bits bits, float[] vin)
+        public int Encode(Bits bits, float[] vin)
         {
             int i;
             float[] mem, innov, syn_resp;
@@ -145,9 +146,9 @@ namespace NSpeex
             int dtx;
     
             /* Compute the two sub-bands by filtering with h0 and h1*/
-            Filters.qmf_decomp(vin, Codebook.h0, x0d, x1d, fullFrameSize, QMF_ORDER, h0_mem);
+            Filters.qmf_decomp(vin, h0, x0d, x1d, fullFrameSize, QMF_ORDER, h0_mem);
             /* Encode the narrowband part*/
-            lowenc.encode(bits, x0d);
+            lowenc.Encode(bits, x0d);
 
             /* High-band buffering / sync with low band */
             for (i=0;i<windowSize-frameSize;i++)
@@ -155,13 +156,14 @@ namespace NSpeex
             for (i=0;i<frameSize;i++)
               high[windowSize-frameSize+i]=x1d[i];
 
-            System.Array.Copy(excBuf, frameSize, excBuf, 0, bufSize-frameSize);
+            Array.Copy(excBuf, frameSize, excBuf, 0, bufSize-frameSize);
 
-            low_pi_gain = lowenc.getPiGain();
-            low_exc     = lowenc.getExc();
-            low_innov   = lowenc.getInnov();
+            low_pi_gain = lowenc.PitchGain;
+            low_exc = lowenc.Excitation;
+            low_innov   = lowenc.Innovation;
 
-            int low_mode = lowenc.getMode();
+
+            int low_mode = lowenc.Mode;
             if (low_mode==0)
               dtx=1;
             else
@@ -182,7 +184,7 @@ namespace NSpeex
 
             /* Levinson-Durbin */
             Lpc.wld(lpc, autocorr, rc, lpcSize); // tmperr
-            System.Array.Copy(lpc, 0, lpc, 1, lpcSize);
+            Array.Copy(lpc, 0, lpc, 1, lpcSize);
             lpc[0]=1;
             /* LPC to LSPs (x-domain) transform */
             int roots = Lsp.lpc2lsp(lpc, lpcSize, lsp, 15, 0.2f);
@@ -234,7 +236,7 @@ namespace NSpeex
                     e_high += high[i] * high[i];
                 }
                 ratio = (float)Math.Log((1 + e_high) / (1 + e_low));
-                relative_quality = lowenc.getRelativeQuality();
+                relative_quality = lowenc.RelativeQuality;
 
                 if (ratio < -4)
                     ratio = -4;
@@ -286,11 +288,11 @@ namespace NSpeex
                     submodeID = modeid;
                 }
             }
-            bits.pack(1, 1);
+            bits.Pack(1, 1);
             if (dtx != 0)
-                bits.pack(0, SB_SUBMODE_BITS);
+                bits.Pack(0, SB_SUBMODE_BITS);
             else
-                bits.pack(submodeID, SB_SUBMODE_BITS);
+                bits.Pack(submodeID, SB_SUBMODE_BITS);
             /* If null mode (no transmission), just set a couple things to zero*/
             if (dtx != 0 || submodes[submodeID] == null)
             {
@@ -405,7 +407,7 @@ namespace NSpeex
                         quant = 0;
                     if (quant > 31)
                         quant = 31;
-                    bits.pack(quant, 5);
+                    bits.Pack(quant, 5);
                     g = (float)(.1 * Math.Exp(quant / 9.4));
                     g /= filter_ratio;
                 }
@@ -422,7 +424,7 @@ namespace NSpeex
                             qgc = 0;
                         if (qgc > 15)
                             qgc = 15;
-                        bits.pack(qgc, 4);
+                        bits.Pack(qgc, 4);
                         gc = (float)Math.Exp((1 / 3.7) * qgc - 2);
                     }
                     scale = gc * (float)Math.Sqrt(1 + el) / filter_ratio;
@@ -464,7 +466,7 @@ namespace NSpeex
                     for (i = 0; i < subframeSize; i++)
                         innov[i] = 0;
                     /*print_vec(target, st->subframeSize, "\ntarget");*/
-                    submodes[submodeID].innovation.quant(target, interp_qlpc, bw_lpc1, bw_lpc2,
+                    submodes[submodeID].innovation.Quant(target, interp_qlpc, bw_lpc1, bw_lpc2,
                                                          lpcSize, subframeSize, innov, 0, syn_resp,
                                                          bits, (complexity + 1) >> 1);
                     /*print_vec(target, st->subframeSize, "after");*/
@@ -478,7 +480,7 @@ namespace NSpeex
                             innov2[i] = 0;
                         for (i = 0; i < subframeSize; i++)
                             target[i] *= 2.5f;
-                        submodes[submodeID].innovation.quant(target, interp_qlpc, bw_lpc1, bw_lpc2,
+                        submodes[submodeID].innovation.Quant(target, interp_qlpc, bw_lpc1, bw_lpc2,
                                                              lpcSize, subframeSize, innov2, 0, syn_resp,
                                                              bits, (complexity + 1) >> 1);
                         for (i = 0; i < subframeSize; i++)
@@ -498,8 +500,8 @@ namespace NSpeex
             }
             //#ifndef RELEASE
             /* Reconstruct the original */
-            filters.fir_mem_up(x0d, Codebook.h0, y0, fullFrameSize, QMF_ORDER, g0_mem);
-            filters.fir_mem_up(high, Codebook.h1, y1, fullFrameSize, QMF_ORDER, g1_mem);
+            filters.fir_mem_up(x0d, h0, y0, fullFrameSize, QMF_ORDER, g0_mem);
+            filters.fir_mem_up(high, h1, y1, fullFrameSize, QMF_ORDER, g1_mem);
 
             for (i=0; i<fullFrameSize; i++)
               vin[i]=2*(y0[i]-y1[i]);
@@ -512,144 +514,6 @@ namespace NSpeex
             return 1;
         }
 
-        public int getEncodedFrameSize()
-        {
-            int size = SB_FRAME_SIZE[submodeID];
-            size += lowenc.getEncodedFrameSize();
-            return size;
-        }
-
-        public void setQuality(int quality)
-        {
-            if (quality < 0)
-            {
-                quality = 0;
-            }
-            if (quality > 10)
-            {
-                quality = 10;
-            }
-            if (uwb)
-            {
-                lowenc.setQuality(quality);
-                this.setMode(UWB_QUALITY_MAP[quality]);
-            }
-            else
-            {
-                lowenc.setMode(NB_QUALITY_MAP[quality]);
-                this.setMode(WB_QUALITY_MAP[quality]);
-            }
-        }
-
-        public void setVbrQuality(float quality)
-        {
-            vbr_quality = quality;
-            float qual = quality + 0.6f;
-            if (qual > 10)
-                qual = 10;
-            lowenc.setVbrQuality(qual);
-            int q = (int)Math.Floor(.5 + quality);
-            if (q > 10)
-                q = 10;
-            setQuality(q);
-        }
-
-        public void setVbr(bool vbr)
-        {
-            vbr_enabled = vbr ? 1 : 0;
-            lowenc.setVbr(vbr);
-        }
-
-        public void setAbr(int abr)
-        {
-            lowenc.setVbr(true);
-            //    super.setAbr(abr);
-            abr_enabled = (abr != 0) ? 1 : 0;
-            vbr_enabled = 1;
-            {
-                int i = 10, rate, target;
-                float vbr_qual;
-                target = abr;
-                while (i >= 0)
-                {
-                    setQuality(i);
-                    rate = getBitRate();
-                    if (rate <= target)
-                        break;
-                    i--;
-                }
-                vbr_qual = i;
-                if (vbr_qual < 0)
-                    vbr_qual = 0;
-                setVbrQuality(vbr_qual);
-                abr_count = 0;
-                abr_drift = 0;
-                abr_drift2 = 0;
-            }
-        }
-
-        public int getBitRate()
-        {
-            if (submodes[submodeID] != null)
-                return lowenc.getBitRate() + sampling_rate * submodes[submodeID].bits_per_frame / frameSize;
-            else
-                return lowenc.getBitRate() + sampling_rate * (SB_SUBMODE_BITS + 1) / frameSize;
-        }
-
-        public void setSamplingRate(int rate)
-        {
-            sampling_rate = rate;
-            lowenc.setSamplingRate(rate);
-        }
-
-        public int getLookAhead()
-        {
-            return 2 * lowenc.getLookAhead() + QMF_ORDER - 1;
-        }
-
-        public void setMode(int mode)
-        {
-            if (mode < 0)
-            {
-                mode = 0;
-            }
-            submodeID = submodeSelect = mode;
-        }
-
-        public int getMode()
-        {
-            return submodeID;
-        }
-
-        public void setBitRate(int bitrate)
-        {
-            for (int i = 10; i >= 0; i--)
-            {
-                setQuality(i);
-                if (getBitRate() <= bitrate)
-                    return;
-            }
-        }
-
-        public bool getVbr()
-        {
-            return vbr_enabled != 0;
-        }
-
-        public void setVad(bool vad)
-        {
-            vad_enabled = vad ? 1 : 0;
-        }
-
-        public bool getVad()
-        {
-            return vad_enabled != 0;
-        }
-
-        public void setDtx(bool dtx)
-        {
-            dtx_enabled = dtx ? 1 : 0;
-        }
 
         public int getAbr()
         {
@@ -684,6 +548,225 @@ namespace NSpeex
         {
             return relative_quality;
         }
-  
+
+
+
+        public int EncodedFrameSize
+        {
+            get
+            {
+                int size = SB_FRAME_SIZE[submodeID];
+                size += lowenc.EncodedFrameSize;
+                return size;
+            }
+        }
+
+        public int Quality
+        {
+            set
+            {
+                int quality = value;
+                if (quality < 0)
+                {
+                    quality = 0;
+                }
+                if (quality > 10)
+                {
+                    quality = 10;
+                }
+                if (uwb)
+                {
+                    lowenc.Quality = quality;
+                    Mode =UWB_QUALITY_MAP[quality];
+                }
+                else
+                {
+                    lowenc.Mode = NB_QUALITY_MAP[quality];
+                    Mode = WB_QUALITY_MAP[quality];
+                }
+            }
+        }
+
+        public int BitRate
+        {
+            get
+            {
+                if (submodes[submodeID] != null)
+                {
+                    return lowenc.BitRate + sampling_rate * submodes[submodeID].bits_per_frame / frameSize;
+                }
+                else
+                {
+                    return lowenc.BitRate + sampling_rate * (SB_SUBMODE_BITS + 1) / frameSize;
+                }
+                    
+            }
+            set
+            {
+                int bitrate = value;
+                for (int i = 10; i >= 0; i--)
+                {
+                    Quality = i;
+                    if (getBitRate() <= bitrate)
+                        return;
+                }
+            }
+        }
+
+        public int Mode
+        {
+            get
+            {
+                return submodeID;
+            }
+            set
+            {
+                int mode = value;
+                if (mode < 0)
+                {
+                    mode = 0;
+                }
+                submodeID = submodeSelect = mode;
+            }
+        }
+
+        public bool Vbr
+        {
+            get
+            {
+                return vbr_enabled != 0;
+            }
+            set
+            {
+                bool vbr = value;
+                vbr_enabled = vbr ? 1 : 0;
+                lowenc.Vbr = vbr;
+            }
+        }
+
+        public bool Vad
+        {
+            get
+            {
+                return vad_enabled != 0;
+            }
+            set
+            {
+                vad_enabled = value ? 1 : 0;
+            }
+        }
+
+        public bool Dtx
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                
+                dtx_enabled = value ? 1 : 0;
+            }
+        }
+
+        public int Abr
+        {
+            get
+            {
+                return abr_enabled;
+            }
+            set
+            {
+                int abr = value;
+                lowenc.Vbr = true; 
+                abr_enabled = (abr != 0) ? 1 : 0;
+                vbr_enabled = 1;
+                {
+                    int i = 10, rate, target;
+                    float vbr_qual;
+                    target = abr;
+                    while (i >= 0)
+                    {
+                        Quality = i;
+                        rate = BitRate;
+                        if (rate <= target)
+                            break;
+                        i--;
+                    }
+                    vbr_qual = i;
+                    if (vbr_qual < 0)
+                        vbr_qual = 0;
+                    VbrQuality = vbr_qual;
+                    abr_count = 0;
+                    abr_drift = 0;
+                    abr_drift2 = 0;
+                }
+            }
+        }
+
+        public float VbrQuality
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                float quality = value;
+                vbr_quality = quality;
+                float qual = quality + 0.6f;
+                if (qual > 10)
+                    qual = 10;
+                lowenc.VbrQuality = qual;
+
+                int q = (int)Math.Floor(.5 + quality);
+                if (q > 10)
+                    q = 10;
+                Quality = q;
+            }
+        }
+
+        public int Complexity
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public int SamleRate
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                int rate = value;
+                sampling_rate = rate;
+                lowenc.SamleRate = rate;
+            }
+        }
+
+        public int LoodAhead
+        {
+            get
+            {
+                return 2 * lowenc.LoodAhead + QMF_ORDER - 1;
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public float RelativeQuality
+        {
+            get { throw new NotImplementedException(); }
+        }
     }
 }

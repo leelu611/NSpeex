@@ -7,8 +7,9 @@ namespace NSpeex
     /// </summary>
     public  class SpeexEncoder
     {
-        public const string VERSION = "Java Speex Encoder v0.9.7 ($Revision: 1.6 $)";
-        private Encoder encoder;
+        public const string Version = "Java Speex Encoder v0.9.7 ($Revision: 1.6 $)";
+        
+        private IEncoder encoder;
         private Bits bits;
         private float[] rawData;
         private int sampleRate;
@@ -31,7 +32,7 @@ namespace NSpeex
         /// the number of samples per second.
         /// </param>
         /// <param name="channels">
-        ///  the number of audio channels (1=mono, 2=stereo, ...).
+        ///  the number of audio channels (1=mono, 2=stereo).
         /// </param>
         /// <returns></returns>
         public bool init(int mode, int quality, int sampleRate, int channels)
@@ -64,12 +65,12 @@ namespace NSpeex
             this.channels = channels;
             rawData = new float[channels * frameSize];
 
-            bits.init();
+            bits.Init();
             return true;
 
         }
 
-        public Encoder getEncoder()
+        public IEncoder getEncoder()
         {
             return encoder;
         }
@@ -100,9 +101,9 @@ namespace NSpeex
         /// </returns>
         public int getProcessedData(byte[] data, int offset)
         {
-            int size = bits.getBufferSize();
-            System.Array.Copy(bits.getBuffer(), 0, data, offset, size);
-            bits.init();
+            int size = bits.BufferSize;
+            Array.Copy(bits.Buffer, 0, data, offset, size);
+            bits.Init();
             return size;
         }
 
@@ -112,7 +113,7 @@ namespace NSpeex
         /// <returns></returns>
         public int getProcessedDataByteSize()
         {
-            return bits.getBufferSize();
+            return bits.BufferSize;
         }
 
 
@@ -160,7 +161,7 @@ namespace NSpeex
             {
                 Stereo.encode(bits, data, frameSize);
             }
-            encoder.encode(bits, data);
+            encoder.Encode(bits, data);
             return true;
         }
         /// <summary>

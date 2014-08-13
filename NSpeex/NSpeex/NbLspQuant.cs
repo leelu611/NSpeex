@@ -34,24 +34,24 @@
             for (i = 0; i < order; i++)
                 qlsp[i] *= 256;
             id = lsp_quant(qlsp, 0, Codebook.cdbk_nb, Codebook.NB_CDBK_SIZE, order);
-            bits.pack(id, 6);
+            bits.Pack(id, 6);
 
             for (i = 0; i < order; i++)
                 qlsp[i] *= 2;
             id = lsp_weight_quant(qlsp, 0, quant_weight, 0, Codebook.cdbk_nb_low1,Codebook.NB_CDBK_SIZE_LOW1, 5);
-            bits.pack(id, 6);
+            bits.Pack(id, 6);
 
             for (i = 0; i < 5; i++)
                 qlsp[i] *= 2;
             id = lsp_weight_quant(qlsp, 0, quant_weight, 0, Codebook.cdbk_nb_low2, Codebook.NB_CDBK_SIZE_LOW2, 5);
-            bits.pack(id, 6);
+            bits.Pack(id, 6);
             id = lsp_weight_quant(qlsp, 5, quant_weight, 5, Codebook.cdbk_nb_high1, Codebook.NB_CDBK_SIZE_HIGH1, 5);
-            bits.pack(id, 6);
+            bits.Pack(id, 6);
 
             for (i = 5; i < 10; i++)
                 qlsp[i] *= 2;
             id = lsp_weight_quant(qlsp, 5, quant_weight, 5, Codebook.cdbk_nb_high2, Codebook.NB_CDBK_SIZE_HIGH2, 5);
-            bits.pack(id, 6);
+            bits.Pack(id, 6);
 
             for (i = 0; i < order; i++)
                 qlsp[i] *= .00097656f;

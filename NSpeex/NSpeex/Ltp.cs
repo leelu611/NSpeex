@@ -15,7 +15,7 @@ namespace NSpeex
         /// pitch
         /// </param>
         /// <returns></returns>
-        public abstract int quant(float[] target, float[] sw, int sws, float[] ak, float[] awk1, float[] awk2,
+        public  abstract int Quant(float[] target, float[] sw, int sws, float[] ak, float[] awk1, float[] awk2,
                             float[] exc, int es, int start, int end, float pitch_coef, int p,
                             int nsf, Bits bits, float[] exc2, int e2s, float[] r, int complexity);
         /// <summary>
@@ -46,7 +46,7 @@ namespace NSpeex
         /// <returns>
         /// pitch
         /// </returns>
-        public abstract int unquant(float[] exc, int es, int start, float pitch_coef,
+        public abstract int UnQuant(float[] exc, int es, int start, float pitch_coef,
                               int nsf, float[] gain_val, Bits bits,
                               int count_lost, int subframe_offset, float last_pitch_gain);
         /// <summary>

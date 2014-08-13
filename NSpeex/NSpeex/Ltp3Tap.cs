@@ -165,7 +165,7 @@ namespace NSpeex
         /// Term Prediction Quantification (3Tap).
         /// </summary>
         /// <returns>pitch</returns>
-        public override  sealed int quant(float[] target, float[] sw, int sws, float[] ak, float[] awk1, float[] awk2, float[] exc, int es, int start, int end, float pitch_coef, int p, int nsf, Bits bits, float[] exc2, int e2s, float[] r, int complexity)
+        public override  sealed int Quant(float[] target, float[] sw, int sws, float[] ak, float[] awk1, float[] awk2, float[] exc, int es, int start, int end, float pitch_coef, int p, int nsf, Bits bits, float[] exc2, int e2s, float[] r, int complexity)
         {
             int i, j;
             int[] cdbk_index = new int[1];
@@ -185,8 +185,8 @@ namespace NSpeex
             gains = new float[N];
             if (N == 0 || end < start)
             {
-                bits.pack(0, pitch_bits);
-                bits.pack(0, gain_bits);
+                bits.Pack(0, pitch_bits);
+                bits.Pack(0, gain_bits);
                 for (i = 0; i < nsf; i++)
                     exc[es + i] = 0;
                 return start;
@@ -212,8 +212,8 @@ namespace NSpeex
                     best_gain_index = cdbk_index[0];
                 }
             }
-            bits.pack(best_pitch - start, pitch_bits);
-            bits.pack(best_gain_index, gain_bits);
+            bits.Pack(best_pitch - start, pitch_bits);
+            bits.Pack(best_gain_index, gain_bits);
             for (i = 0; i < nsf; i++)
                 exc[es + i] = best_exc[i];
 
@@ -235,13 +235,13 @@ namespace NSpeex
         /// <param name="subframe_offset"></param>
         /// <param name="last_pitch_gain"></param>
         /// <returns>pitch</returns>
-        public override  sealed int unquant(float[] exc, int es, int start, float pitch_coef, int nsf, float[] gain_val, Bits bits, int count_lost, int subframe_offset, float last_pitch_gain)
+        public override  sealed int UnQuant(float[] exc, int es, int start, float pitch_coef, int nsf, float[] gain_val, Bits bits, int count_lost, int subframe_offset, float last_pitch_gain)
         {
             int i, pitch, gain_index;
 
-            pitch = bits.unpack(pitch_bits);
+            pitch = bits.UnPack(pitch_bits);
             pitch += start;
-            gain_index = bits.unpack(gain_bits);
+            gain_index = bits.UnPack(gain_bits);
 
             gain[0] = 0.015625f * (float)gain_cdbk[gain_index * 3] + .5f;
             gain[1] = 0.015625f * (float)gain_cdbk[gain_index * 3 + 1] + .5f;

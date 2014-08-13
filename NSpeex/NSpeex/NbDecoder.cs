@@ -5,7 +5,7 @@ namespace NSpeex
     /// <summary>
     /// Narrowband Speex Decoder
     /// </summary>
-    public class NbDecoder:NbCodec,Decoder
+    public class NbDecoder:NbCodec,IDecoder
     {
         private float[] innov2;
         private int count_lost;
@@ -53,7 +53,7 @@ namespace NSpeex
         /// <param name="bits">Speex bits buffer.</param>
         /// <param name="vout">the decoded mono audio frame.</param>
         /// <returns>1 if a terminator was found, 0 if not.</returns>
-        public int decode(Bits bits, float[] vout)
+        public int Decode(Bits bits, float[] vout)
         {
             int i, sub, pitch, ol_pitch = 0, m;
             float[] pitch_gain = new float[3];
@@ -74,20 +74,20 @@ namespace NSpeex
                 }
                 do 
                 {
-                    if (bits.unpack(1) != 0)
+                    if (bits.UnPack(1) != 0)
                     {
-                        m = bits.unpack(SbCodec.SB_SUBMODE_BITS);
+                        m = bits.UnPack(SbCodec.SB_SUBMODE_BITS);
                         int advance = SbCodec.SB_FRAME_SIZE[m];
                         if (advance < 0)
                         {
                             throw new Exception("Invalid sideband mode encountered (1st sideband): " + m);
                         }
                         advance -= (SbCodec.SB_SUBMODE_BITS + 1);
-                        bits.advance(advance);
-                        if (bits.unpack(1) != 0)
+                        bits.Advance(advance);
+                        if (bits.UnPack(1) != 0)
                         { /* Skip ultra-wideband block (for compatibility) */
                             /* Get the sub-mode that was used */
-                            m = bits.unpack(SbCodec.SB_SUBMODE_BITS);
+                            m = bits.UnPack(SbCodec.SB_SUBMODE_BITS);
                             advance = SbCodec.SB_FRAME_SIZE[m];
                             if (advance < 0)
                             {
@@ -95,8 +95,8 @@ namespace NSpeex
                                 //return -2;
                             }
                             advance -= (SbCodec.SB_SUBMODE_BITS + 1);
-                            bits.advance(advance);
-                            if (bits.unpack(1) != 0)
+                            bits.Advance(advance);
+                            if (bits.UnPack(1) != 0)
                             { /* Sanity check */
                                 throw new Exception("More than two sideband layers found");
                                 //return -2;
@@ -104,7 +104,7 @@ namespace NSpeex
                         }
                     }
 
-                    m = bits.unpack(NB_SUBMODE_BITS);
+                    m = bits.UnPack(NB_SUBMODE_BITS);
                     if (m == 15)
                     { /* We found a terminator */
                         return 1;
@@ -173,22 +173,22 @@ namespace NSpeex
             /* Get open-loop pitch estimation for low bit-rate pitch coding */
             if (submodes[submodeID].lbr_pitch != -1)
             {
-                ol_pitch = min_pitch + bits.unpack(7);
+                ol_pitch = min_pitch + bits.UnPack(7);
             }
 
             if (submodes[submodeID].forced_pitch_gain != 0)
             {
-                int quant = bits.unpack(4);
+                int quant = bits.UnPack(4);
                 ol_pitch_coef = 0.066667f * quant;
             }
             /* Get global excitation gain */
-            int qe = bits.unpack(5);
+            int qe = bits.UnPack(5);
             ol_gain = (float)Math.Exp(qe / 3.5);
 
             /* unpacks unused dtx bits */
             if (submodeID == 1)
             {
-                int extra = bits.unpack(4);
+                int extra = bits.UnPack(4);
                 if (extra == 15)
                     dtx_enabled = 1;
                 else
@@ -271,7 +271,7 @@ namespace NSpeex
                     pit_max = max_pitch;
                 }
                 /* Pitch synthesis */
-                pitch = submodes[submodeID].ltp.unquant(excBuf, extIdx, pit_min, ol_pitch_coef,
+                pitch = submodes[submodeID].ltp.UnQuant(excBuf, extIdx, pit_min, ol_pitch_coef,
                                                         subframeSize, pitch_gain, bits,
                                                         count_lost, offset, last_pitch_gain);
                 /* If we had lost frames, check energy of last received frame */
@@ -307,12 +307,12 @@ namespace NSpeex
                 /* Decode sub-frame gain correction */
                 if (submodes[submodeID].have_subframe_gain == 3)
                 {
-                    q_energy = bits.unpack(3);
+                    q_energy = bits.UnPack(3);
                     ener = (float)(ol_gain * Math.Exp(exc_gain_quant_scal3[q_energy]));
                 }
                 else if (submodes[submodeID].have_subframe_gain == 1)
                 {
-                    q_energy = bits.unpack(1);
+                    q_energy = bits.UnPack(1);
                     ener = (float)(ol_gain * Math.Exp(exc_gain_quant_scal1[q_energy]));
                 }
                 else
@@ -322,7 +322,7 @@ namespace NSpeex
                 if (submodes[submodeID].innovation != null)
                 {
                     /* Fixed codebook contribution */
-                    submodes[submodeID].innovation.unquant(innov, ivi, subframeSize, bits);
+                    submodes[submodeID].innovation.UnQuant(innov, ivi, subframeSize, bits);
                 }
                 /* De-normalize innovation and update excitation */
                 for (i = ivi; i < ivi + subframeSize; i++)
@@ -367,7 +367,7 @@ namespace NSpeex
                 {
                     for (i = 0; i < subframeSize; i++)
                         innov2[i] = 0;
-                    submodes[submodeID].innovation.unquant(innov2, 0, subframeSize, bits);
+                    submodes[submodeID].innovation.UnQuant(innov2, 0, subframeSize, bits);
                     for (i = 0; i < subframeSize; i++)
                         innov2[i] *= ener * (1f / 2.2f);
                     for (i = 0; i < subframeSize; i++)
@@ -518,20 +518,15 @@ namespace NSpeex
             return 0;
         }
 
-        public void decodeStereo(float[] data, int frameSize)
+        public void DecodeStereo(float[] data, int frameSize)
         {
             stereo.decode(data, frameSize);
         }
 
-        public void setPerceptualEnhancement(bool enhanced)
+        public bool PerceptualEnhancement
         {
-            this.enhanced = enhanced;
+            get { return enhanced; }
+            set { enhanced = value; }
         }
-
-        public bool getPerceptualEnhancement()
-        {
-            return enhanced;
-        }
-
     }
 }

@@ -35,7 +35,49 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BigEndian.cs" />
+    <Compile Include="Bits.cs" />
+    <Compile Include="CbSearch.cs" />
+    <Compile Include="Codebook.cs" />
+    <Compile Include="ICoder.cs" />
+    <Compile Include="IDecoder.cs" />
+    <Compile Include="IEncoder.cs" />
+    <Compile Include="Filters.cs" />
+    <Compile Include="HighLspQuant.cs" />
+    <Compile Include="Inband.cs" />
+    <Compile Include="LbrLspQuant.cs" />
+    <Compile Include="LittleEndian.cs" />
+    <Compile Include="Lpc.cs" />
+    <Compile Include="Lsp.cs" />
+    <Compile Include="LspQuant.cs" />
+    <Compile Include="Ltp.cs" />
+    <Compile Include="Ltp3Tap.cs" />
+    <Compile Include="LtpForcedPitch.cs" />
+    <Compile Include="Misc.cs" />
+    <Compile Include="NbCodec.cs" />
+    <Compile Include="NbDecoder.cs" />
+    <Compile Include="NbEncoder.cs" />
+    <Compile Include="NbLspQuant.cs" />
+    <Compile Include="NoiseSearch.cs" />
+    <Compile Include="OggCrc.cs" />
+    <Compile Include="OggSpeexDecoder.cs" />
+    <Compile Include="OggSpeexEncoder.cs" />
+    <Compile Include="OggSpeexPacket.cs" />
+    <Compile Include="OggSpeexPage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SbCodec.cs" />
+    <Compile Include="SbDecoder.cs" />
+    <Compile Include="SbEncoder.cs" />
+    <Compile Include="SpeexDecoder.cs" />
+    <Compile Include="SpeexEncoder.cs" />
+    <Compile Include="SpeexException.cs" />
+    <Compile Include="SpeexFrame.cs" />
+    <Compile Include="SplitShapeSearch.cs" />
+    <Compile Include="Stereo.cs" />
+    <Compile Include="SubMode.cs" />
+    <Compile Include="Test\TestMain.cs" />
+    <Compile Include="Vbr.cs" />
+    <Compile Include="VQ.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
