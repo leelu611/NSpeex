@@ -49,8 +49,8 @@ namespace NSpeex
         private float average_energy;
         private float last_energy;
         private float[] last_log_energy;
-        private float accum_sum;
-        private float last_pitch_coef;
+        //private float accum_sum;
+        //private float last_pitch_coef;
         private float soft_pitch;
         private float last_quality;
         private float noise_level;
@@ -62,10 +62,10 @@ namespace NSpeex
         {
             average_energy = 0;
             last_energy = 1;
-            accum_sum = 0;
+//            accum_sum = 0;
             energy_alpha = .1f;
             soft_pitch = 0;
-            last_pitch_coef = 0;
+//            last_pitch_coef = 0;
             last_quality = 0;
 
             noise_accum = (float)(.05 * Math.Pow(MIN_ENERGY, NOISE_POW));
@@ -101,7 +101,7 @@ namespace NSpeex
             int i;
             float ener = 0, ener1 = 0, ener2 = 0;
             float qual = 7;
-            int va;
+//            int va;
             float log_energy;
             float non_st = 0;
             float voicing;
@@ -133,7 +133,7 @@ namespace NSpeex
                || (voicing < 0 && non_st < .05f))
             {
                 float tmp;
-                va = 0;
+//                va = 0;
                 consec_noise++;
                 if (pow_ener > 3 * noise_level)
                     tmp = 3 * noise_level;
@@ -147,7 +147,7 @@ namespace NSpeex
             }
             else
             {
-                va = 1;
+//                va = 1;
                 consec_noise = 0;
             }
 
@@ -232,7 +232,7 @@ namespace NSpeex
             if (qual < -1)
                 qual = -1;
 
-            last_pitch_coef = pitch_coef;
+//            last_pitch_coef = pitch_coef;
             last_quality = qual;
 
             for (i = VBR_MEMORY_SIZE - 1; i > 0; i--)

@@ -20,7 +20,7 @@
         /// <summary>
         /// Wideband initialisation
         /// </summary>
-        public void wbinit()
+        public virtual void wbinit()
         {
             submodes = buildWbSubModes();
             submodeID = 3;
@@ -28,7 +28,7 @@
         /// <summary>
         /// Ultra-wideband initialisation
         /// </summary>
-        public void uwbinit()
+        public virtual void uwbinit()
         {
             submodes = buildUwbSubModes();
             submodeID = 1;
@@ -36,7 +36,7 @@
         /// <summary>
         /// Initialisation
         /// </summary>
-        protected void init(int frameSize, int subframeSize, int lpcSize, int bufSize, float foldingGain)
+        public virtual void init(int frameSize, int subframeSize, int lpcSize, int bufSize, float foldingGain)
         {
             base.init(frameSize, subframeSize, lpcSize, bufSize);
             this.fullFrameSize = 2 * frameSize;

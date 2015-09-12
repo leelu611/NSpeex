@@ -60,7 +60,7 @@ namespace NSpeex
         /// <summary>
         /// Wideband initialisation
         /// </summary>
-        public void wbinit()
+        public override void wbinit()
         {
             lowenc = new NbEncoder();
             ((NbEncoder)lowenc).nbinit();
@@ -76,7 +76,7 @@ namespace NSpeex
         /// <summary>
         /// Ultra-wideband initialisation
         /// </summary>
-        public void uwbinit()
+        public override void uwbinit()
         {
             lowenc = new SbEncoder();
             ((SbEncoder)lowenc).wbinit();
@@ -96,7 +96,7 @@ namespace NSpeex
         /// <param name="lpcSize"></param>
         /// <param name="bufSize"></param>
         /// <param name="foldingGain"></param>
-        public void init(int frameSize, int subframeSize, int lpcSize, int bufSize, float foldingGain)
+        public override void init(int frameSize, int subframeSize, int lpcSize, int bufSize, float foldingGain)
         {
             base.init(frameSize, subframeSize, lpcSize, bufSize, foldingGain);
             complexity = 3; // in C it's 2 here, but set to 3 automatically by the encoder
@@ -258,19 +258,22 @@ namespace NSpeex
                         float thresh;
                         v1 = (int)Math.Floor(vbr_quality);
                         if (v1 == 10)
-                            thresh = Vbr.hb_thresh[modeid][v1];
+                        {
+                            thresh =  NSpeex.Vbr.hb_thresh[modeid][v1];
+                          
+                        }
                         else
-                            thresh = (vbr_quality - v1) * Vbr.hb_thresh[modeid][v1 + 1] +
-                                     (1 + v1 - vbr_quality) * Vbr.hb_thresh[modeid][v1];
+                        {
+                            thresh = (vbr_quality - v1) * NSpeex.Vbr.hb_thresh[modeid][v1 + 1] + (1 + v1 - vbr_quality) * NSpeex.Vbr.hb_thresh[modeid][v1];
+                        }
                         if (relative_quality >= thresh)
                             break;
                         modeid--;
                     }
-                    setMode(modeid);
+                    Mode = modeid;
                     if (abr_enabled != 0)
                     {
-                        int bitrate;
-                        bitrate = getBitRate();
+                        int bitrate = BitRate;
                         abr_drift += (bitrate - abr_enabled);
                         abr_drift2 = .95f * abr_drift2 + .05f * (bitrate - abr_enabled);
                         abr_count += 1.0f;
@@ -515,42 +518,6 @@ namespace NSpeex
         }
 
 
-        public int getAbr()
-        {
-            return abr_enabled;
-        }
-
-        public float getVbrQuality()
-        {
-            return vbr_quality;
-        }
-
-        public void setComplexity(int complexity)
-        {
-            if (complexity < 0)
-                complexity = 0;
-            if (complexity > 10)
-                complexity = 10;
-            this.complexity = complexity;
-        }
-
-        public int getComplexity()
-        {
-            return complexity;
-        }
-
-        public int getSamplingRate()
-        {
-            return sampling_rate;
-        }
-
-        public float getRelativeQuality()
-        {
-            return relative_quality;
-        }
-
-
-
         public int EncodedFrameSize
         {
             get
@@ -607,7 +574,7 @@ namespace NSpeex
                 for (int i = 10; i >= 0; i--)
                 {
                     Quality = i;
-                    if (getBitRate() <= bitrate)
+                    if (BitRate <= bitrate)
                         return;
                 }
             }
@@ -660,7 +627,7 @@ namespace NSpeex
         {
             get
             {
-                throw new NotImplementedException();
+                return dtx_enabled != 0;
             }
             set
             {
@@ -708,7 +675,7 @@ namespace NSpeex
         {
             get
             {
-                throw new NotImplementedException();
+                return vbr_quality;
             }
             set
             {
@@ -730,11 +697,16 @@ namespace NSpeex
         {
             get
             {
-                throw new NotImplementedException();
+                return complexity;
             }
             set
             {
-                throw new NotImplementedException();
+                int complexity2 = value;
+                if (complexity2 < 0)
+                    complexity2 = 0;
+                if (complexity2 > 10)
+                    complexity2 = 10;
+                this.complexity = complexity2;
             }
         }
 
@@ -742,7 +714,7 @@ namespace NSpeex
         {
             get
             {
-                throw new NotImplementedException();
+                return sampling_rate;
             }
             set
             {
@@ -758,15 +730,12 @@ namespace NSpeex
             {
                 return 2 * lowenc.LoodAhead + QMF_ORDER - 1;
             }
-            set
-            {
-                throw new NotImplementedException();
-            }
         }
 
         public float RelativeQuality
         {
-            get { throw new NotImplementedException(); }
+            get { return this.relative_quality; }
         }
+
     }
 }

@@ -14,12 +14,19 @@
         public const string Version = "Java Speex Decoder v0.9.7 ($Revision: 1.4 $)";
         
         private int sampleRate;
+
         private int channels;
+        
         private float[] decodedData;
+        
         private short[] outputData;
+        
         private int outputSize;
+        
         private Bits bits;
+        
         private IDecoder decoder;
+        
         private int frameSize;
         /// <summary>
         /// Constructor
@@ -70,7 +77,7 @@
             /* initialize the speex decoder */
             decoder.PerceptualEnhancement = enhanced;
             /* set decoder format and properties */
-            this.frameSize = decoder.getFrameSize();
+            this.frameSize = decoder.FrameSize;
             this.sampleRate = sampleRate;
             this.channels = channels;
             int secondSize = sampleRate * channels;

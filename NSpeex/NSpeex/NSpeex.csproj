@@ -35,6 +35,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AudioFileWriter.cs" />
     <Compile Include="BigEndian.cs" />
     <Compile Include="Bits.cs" />
     <Compile Include="CbSearch.cs" />
@@ -60,10 +61,6 @@
     <Compile Include="NbLspQuant.cs" />
     <Compile Include="NoiseSearch.cs" />
     <Compile Include="OggCrc.cs" />
-    <Compile Include="OggSpeexDecoder.cs" />
-    <Compile Include="OggSpeexEncoder.cs" />
-    <Compile Include="OggSpeexPacket.cs" />
-    <Compile Include="OggSpeexPage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SbCodec.cs" />
     <Compile Include="SbDecoder.cs" />

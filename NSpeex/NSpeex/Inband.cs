@@ -7,10 +7,10 @@ namespace NSpeex
     /// </summary>
     public class Inband
     {
-        private Stereo stereo;
+        private Stereo _stereo;
         public Inband(Stereo stereo)
         {
-            this.stereo = stereo;
+            this._stereo = stereo;
         }
         /// <summary>
         /// Speex in-band request (submode=14).
@@ -50,7 +50,7 @@ namespace NSpeex
                     break;
                 case 9: // intensity stereo information
                     // setup the stereo decoder; to skip: tmp = bits.unpack(8); break;
-                    stereo.init(bits); // read 8 bits
+                    _stereo.init(bits); // read 8 bits
                     break;
                 case 10: // announce maximum bit-rate acceptable (N in byets/second)
                     bits.Advance(16);
@@ -87,7 +87,7 @@ namespace NSpeex
             }
             catch (Exception e)
             {
-                throw new Exception(e.Message);
+                throw new SpeexException(e.Message);
             }
         }
     }

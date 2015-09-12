@@ -57,10 +57,11 @@ namespace NSpeex
                     return false;
             }
             /* initialize the speex decoder */
-            encoder.setQuality(quality);
+//            encoder.setQuality(quality);
+            encoder.Quality = quality;
 
             /* set decoder format and properties */
-            this.frameSize = encoder.getFrameSize();
+            this.frameSize = encoder.FrameSize;
             this.sampleRate = sampleRate;
             this.channels = channels;
             rawData = new float[channels * frameSize];

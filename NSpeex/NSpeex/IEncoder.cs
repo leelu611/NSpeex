@@ -1,6 +1,6 @@
 ﻿namespace NSpeex
 {
-    public interface IEncoder:ICoder
+    public interface IEncoder
     {
         /// <summary>
         /// Encode the given input signal.
@@ -21,6 +21,8 @@
         /// </summary>
         int EncodedFrameSize { get; }
 
+        int FrameSize { get; }
+
         /// <summary>
         ///  Sets the Quality (between 0 and 10).
         /// </summary>
@@ -30,7 +32,18 @@
         /// Get the current Bit Rate.
         /// </summary>
         int BitRate { get; set; }
-        
+
+        float[] PitchGain { get; }
+
+        /// <summary>
+        /// excitation array.
+        /// </summary>
+        float[] Excitation { get; }
+
+        /// <summary>
+        /// innovation array.
+        /// </summary>
+        float[] Innovation { get; }
         /// <summary>
         /// Get and Set the encoding submode.
         /// </summary>
@@ -49,12 +62,12 @@
         /// <summary>
         /// Get and Set whether or not to use Discontinuous Transmission encoding.
         /// </summary>
-        new bool Dtx { get;set; }
+        bool Dtx { get; set; }
 
         /// <summary>
         /// Get and Set the Average Bit Rate used (0 if ABR is not turned on).
         /// </summary>
-        bool Abr { get; set; }
+        int Abr { get; set; }
 
         /// <summary>
         /// Get and Set Varible Bit Rate Quality.
@@ -74,7 +87,7 @@
         /// <summary>
         /// LookAhead.
         /// </summary>
-        int LoodAhead { get; set; }
+        int LoodAhead { get; }
 
         /// <summary>
         /// Get the relative quality.

@@ -5,12 +5,12 @@
     /// This class contains all the basic structures needed by the Narrowband
     /// encoder and decoder.
     /// </summary>
-    public abstract class NbCodec:Codebook,ICoder
+    public abstract class NbCodec:Codebook
     {
         /// <summary>
         /// Very small initial value for some of the buffers. 
         /// </summary>
-        public const float VERY_SMALL = (float)0e-30;
+        public const float VERY_SMALL = (float)0e-15;
         /// <summary>
         /// The Narrowband Frame Size gives the size in bits of a Narrowband frame for a given narrowband submode.
         /// </summary>
@@ -103,7 +103,7 @@
         /// <param name="subframeSize"></param>
         /// <param name="lpcSize"></param>
         /// <param name="bufSize"></param>
-        protected void init(int frameSize, int subframeSize, int lpcSize, int bufSize)
+        public virtual void init(int frameSize, int subframeSize, int lpcSize, int bufSize)
         {
             first = 1;
             // Codec parameters, should eventually have several "modes"
@@ -194,11 +194,6 @@
         public int FrameSize
         {
             get { return frameSize; }
-        }
-
-        public bool Dtx
-        {
-            get { return dtx_enabled != 0; }
         }
 
         public float[] PitchGain

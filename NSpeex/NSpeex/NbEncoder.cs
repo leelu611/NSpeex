@@ -53,7 +53,7 @@ namespace NSpeex
         /// <param name="subframeSize"></param>
         /// <param name="lpcSize"></param>
         /// <param name="bufSize"></param>
-        public void init(int frameSize, int subframeSize, int lpcSize, int bufSize)
+        public override void init(int frameSize, int subframeSize, int lpcSize, int bufSize)
         {
             base.init(frameSize, subframeSize, lpcSize, bufSize);
             complexity = 3; // in C it's 2 here, but set to 3 automatically by the encoder
@@ -109,14 +109,6 @@ namespace NSpeex
             pitch = new int[nbSubframes];
         }
 
-        public void nbinit()
-        {
-            // Initialize SubModes
-            submodes = buildNbSubModes();
-            submodeID = 5;
-            // Initialize narrwoband parameters and variables
-            init(160, 40, 10, 640);
-        }
         public int Encode(Bits bits, float[] vin)
         {
             int i;
@@ -313,12 +305,14 @@ namespace NSpeex
                 } else {
                   dtx_count=0;
                 }
-                setMode(mode);
+                
+                  
+                Mode = mode;
 
                 if (abr_enabled != 0)
                 {
                   int bitrate;
-                  bitrate = getBitRate();
+                    bitrate = BitRate;
                   abr_drift+=(bitrate-abr_enabled);
                   abr_drift2 = .95f*abr_drift2 + .05f*(bitrate-abr_enabled);
                   abr_count += 1.0f;
@@ -722,180 +716,10 @@ namespace NSpeex
             return 1;
         }
 
-        /// <summary>
-        /// Sets the Quality
-        /// </summary>
-        /// <param name="quality"></param>
-        public void setQuality(int quality)
-        {
-            if (quality < 0)
-            {
-                quality = 0;
-            }
-            if (quality > 10)
-            {
-                quality = 10;
-            }
-            submodeID = submodeSelect = NB_QUALITY_MAP[quality];
-        }
-        /// <summary>
-        /// Gets the bitrate.
-        /// </summary>
-        /// <returns></returns>
-        public int getBitRate()
-        {
-            if (submodes[submodeID] != null)
-                return sampling_rate * submodes[submodeID].bits_per_frame / frameSize;
-            else
-                return sampling_rate * (NB_SUBMODE_BITS + 1) / frameSize;
-        }
-        /// <summary>
-        /// Sets the encoding submode.
-        /// </summary>
-        /// <param name="mode"></param>
-        public void setMode(int mode)
-        {
-            if (mode < 0)
-            {
-                mode = 0;
-            }
-            submodeID = submodeSelect = mode;
-        }
-        /// <summary>
-        /// Returns the encoding submode currently in use.
-        /// </summary>
-        /// <returns></returns>
-        public int getMode()
-        {
-            return submodeID;
-        }
-        /// <summary>
-        /// Sets the bitrate.
-        /// </summary>
-        /// <param name="bitrate"></param>
-        public void setBitRate(int bitrate)
-        {
-            for (int i = 10; i >= 0; i--)
-            {
-                setQuality(i);
-                if (getBitRate() <= bitrate)
-                    return;
-            }
-        }
-
-        public void setVbr(bool vbr)
-        {
-            vbr_enabled = vbr ? 1 : 0;
-        }
-
-        public bool getVbr()
-        {
-            return vbr_enabled != 0;
-        }
-
-        public void setVad(bool vad)
-        {
-            vad_enabled = vad ? 1 : 0;
-        }
-
-        public bool getVad()
-        {
-            return vad_enabled != 0;
-        }
-
-        public void setDtx(bool dtx)
-        {
-            dtx_enabled = dtx ? 1 : 0;
-        }
-
-        public int getAbr()
-        {
-            return abr_enabled;
-        }
-
-        public void setAbr(int abr)
-        {
-            abr_enabled = (abr != 0) ? 1 : 0;
-            vbr_enabled = 1;
-            {
-                int i = 10, rate, target;
-                float vbr_qual;
-                target = abr;
-                while (i >= 0)
-                {
-                    setQuality(i);
-                    rate = getBitRate();
-                    if (rate <= target)
-                        break;
-                    i--;
-                }
-                vbr_qual = i;
-                if (vbr_qual < 0)
-                    vbr_qual = 0;
-                setVbrQuality(vbr_qual);
-                abr_count = 0;
-                abr_drift = 0;
-                abr_drift2 = 0;
-            }
-        }
-
-        public void setVbrQuality(float quality)
-        {
-            if (quality < 0f)
-                quality = 0f;
-            if (quality > 10f)
-                quality = 10f;
-            vbr_quality = quality;
-        }
-
-        public float getVbrQuality()
-        {
-            return vbr_quality;
-        }
-
-        public void setComplexity(int complexity)
-        {
-            if (complexity < 0)
-                complexity = 0;
-            if (complexity > 10)
-                complexity = 10;
-            this.complexity = complexity;
-        }
-
-        public int getComplexity()
-        {
-            return complexity;
-        }
-
-        public void setSamplingRate(int rate)
-        {
-            sampling_rate = rate;
-        }
-
-        public int getSamplingRate()
-        {
-            return sampling_rate;
-        }
-
-        public int getLookAhead()
-        {
-            return windowSize - frameSize;
-        }
-
-        public float getRelativeQuality()
-        {
-            return relative_quality;
-        }
-
-        public int getEncodedFrameSize()
-        {
-            return frameSize;
-        }
-
 
         public int EncodedFrameSize
         {
-            get { return frameSize; }
+            get { return NB_FRAME_SIZE[submodeID]; }
         }
 
         public int Quality
@@ -919,23 +743,43 @@ namespace NSpeex
         {
             get
             {
-                throw new NotImplementedException();
+                if (submodes[submodeID] != null)
+                {
+                    return sampling_rate*submodes[submodeID].bits_per_frame/frameSize;
+                }
+                else
+                {
+                    return sampling_rate*(NB_SUBMODE_BITS + 1)/frameSize;
+                }
             }
             set
             {
-                throw new NotImplementedException();
+                for (int i = 10; i >= 0; i--)
+                {
+                    Quality = i;
+                    if (BitRate <= value)
+                    {
+                        return;
+                    }
+                }
             }
+            
         }
 
         public int Mode
         {
             get
             {
-                throw new NotImplementedException();
+                return submodeID;
             }
             set
             {
-                throw new NotImplementedException();
+                int mode = value;
+                if (mode < 0)
+                {
+                    mode = 0;
+                }
+                submodeID = submodeSelect = mode;
             }
         }
 
@@ -943,11 +787,11 @@ namespace NSpeex
         {
             get
             {
-                throw new NotImplementedException();
+                return vbr_enabled != 0;
             }
             set
             {
-                throw new NotImplementedException();
+                vbr_enabled = value ? 1 : 0;
             }
         }
 
@@ -955,35 +799,30 @@ namespace NSpeex
         {
             get
             {
-                throw new NotImplementedException();
+                return vad_enabled != 0;
             }
             set
             {
-                throw new NotImplementedException();
+                vad_enabled = value ? 1 : 0;
             }
         }
 
-        public new int Dtx
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
 
         public float VbrQuality
         {
             get
             {
-                throw new NotImplementedException();
+                return vbr_quality;
             }
             set
             {
-                throw new NotImplementedException();
+                float quality = value;
+
+                if (quality < 0f)
+                    quality = 0f;
+                if (quality > 10f)
+                    quality = 10f;
+                vbr_quality = quality;
             }
         }
 
@@ -991,11 +830,16 @@ namespace NSpeex
         {
             get
             {
-                throw new NotImplementedException();
+                return complexity;
             }
             set
             {
-                throw new NotImplementedException();
+                int complexity2 = value;
+                if (complexity2 < 0)
+                    complexity2 = 0;
+                if (complexity2 > 10)
+                    complexity2 = 10;
+                this.complexity = complexity2;
             }
         }
 
@@ -1003,11 +847,11 @@ namespace NSpeex
         {
             get
             {
-                throw new NotImplementedException();
+                return sampling_rate;
             }
             set
             {
-                throw new NotImplementedException();
+                sampling_rate = value;
             }
         }
 
@@ -1015,17 +859,60 @@ namespace NSpeex
         {
             get
             {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
+                return windowSize - frameSize;
             }
         }
 
         public float RelativeQuality
         {
-            get { throw new NotImplementedException(); }
+            get { return relative_quality; }
+        }
+
+
+        public bool Dtx
+        {
+            get
+            {
+                return dtx_enabled != 0;
+            }
+            set
+            {
+                dtx_enabled = value ? 1 : 0;
+            }
+        }
+
+        public int Abr
+        {
+            get
+            {
+                return abr_enabled;
+            }
+            set
+            {
+                int abr = value;
+                abr_enabled = (abr != 0) ? 1 : 0;
+                vbr_enabled = 1;
+                {
+                    int i = 10, rate, target;
+                    float vbr_qual;
+                    target = abr;
+                    while (i >= 0)
+                    {
+                        Quality = i;
+                        rate = BitRate;
+                        if (rate <= target)
+                            break;
+                        i--;
+                    }
+                    vbr_qual = i;
+                    if (vbr_qual < 0)
+                        vbr_qual = 0;
+                    VbrQuality = vbr_qual;
+                    abr_count = 0;
+                    abr_drift = 0;
+                    abr_drift2 = 0;
+                }
+            }
         }
     }
 }

@@ -3,3 +3,8 @@ D:\project\github\NSpeex\NSpeex\NSpeex\bin\Debug\NSpeex.pdb
 D:\project\github\NSpeex\NSpeex\NSpeex\obj\Debug\NSpeex.dll
 D:\project\github\NSpeex\NSpeex\NSpeex\obj\Debug\NSpeex.pdb
 D:\project\github\NSpeex\NSpeex\NSpeex\obj\Debug\NSpeex.csprojResolveAssemblyReference.cache
+D:\github\NSpeex\NSpeex\NSpeex\obj\Debug\NSpeex.csprojResolveAssemblyReference.cache
+D:\github\NSpeex\NSpeex\NSpeex\bin\Debug\NSpeex.dll
+D:\github\NSpeex\NSpeex\NSpeex\bin\Debug\NSpeex.pdb
+D:\github\NSpeex\NSpeex\NSpeex\obj\Debug\NSpeex.dll
+D:\github\NSpeex\NSpeex\NSpeex\obj\Debug\NSpeex.pdb

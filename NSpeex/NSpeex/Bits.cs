@@ -1,22 +1,4 @@
-﻿/*
-  
-   Copyright [2014] [alking of copyright morln]
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License. 
-
- */
-
-namespace NSpeex
+﻿namespace NSpeex
 {
     /// <summary>
     /// Speex bit packing and unpacking class.
@@ -90,7 +72,9 @@ namespace NSpeex
         public void ReadFrom(byte[] newbytes, int offset, int len)
         {
             for (int i = 0; i < len; i++)
+            {
                 _bytes[i] = newbytes[offset + i];
+            }
             _bytePtr = 0;
             _bitPtr = 0;
         }
@@ -163,6 +147,7 @@ namespace NSpeex
             get { return _bytes; }
             set { _bytes = value; }
         }
+
         /// <summary>
         /// Returns the number of bytes used in the current buffer.
         /// </summary>

@@ -19,7 +19,7 @@ namespace NSpeex
         /// <summary>
         /// Wideband initialisation
         /// </summary>
-        public void wbinit()
+        public override void wbinit()
         {
             lowdec = new NbDecoder();
             ((NbDecoder)lowdec).nbinit();
@@ -30,7 +30,7 @@ namespace NSpeex
         /// <summary>
         /// Ultra-wideband initialisation
         /// </summary>
-        public void uwbinit()
+        public override void uwbinit()
         {
             lowdec = new SbDecoder();
             ((SbDecoder)lowdec).wbinit();
@@ -41,7 +41,7 @@ namespace NSpeex
         /// <summary>
         /// Initialisation
         /// </summary>
-        public void init(int frameSize, int subframeSize, int lpcSize, int bufSize, float foldingGain)
+        public override void init(int frameSize, int subframeSize, int lpcSize, int bufSize, float foldingGain)
         {
             base.init(frameSize, subframeSize, lpcSize, bufSize, foldingGain);
             excIdx = 0;
@@ -67,7 +67,7 @@ namespace NSpeex
             {
                return ret;
             }
-            bool dtx = lowdec.getDtx();
+            bool dtx = lowdec.Dtx;
             if (bits == null) 
             {
               decodeLost(vout, dtx);
@@ -106,9 +106,9 @@ namespace NSpeex
                     vout[i]=2*(y0[i]-y1[i]);
                 return 0;
             }
-            low_pi_gain = lowdec.getPiGain();
-            low_exc     = lowdec.getExc();
-            low_innov   = lowdec.getInnov();
+            low_pi_gain = lowdec.PitchGain;
+            low_exc     = lowdec.Excitation;
+            low_innov   = lowdec.Innovation;
             submodes[submodeID].lsqQuant.unquant(qlsp, lpcSize, bits);
             if (first!=0) 
             {
@@ -326,6 +326,12 @@ namespace NSpeex
         {
             get { return enhanced; }
             set { enhanced = value; }
+        }
+
+
+        public bool Dtx
+        {
+            get { return dtx_enabled != 0; }
         }
     }
 }

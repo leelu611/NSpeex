@@ -25,7 +25,7 @@ namespace NSpeex
             enhanced = true;
         }
 
-        public void init(int frameSize, int subframeSize, int lpcSize, int bufSize)
+        public override void init(int frameSize, int subframeSize, int lpcSize, int bufSize)
         {
             base.init(frameSize, subframeSize, lpcSize, bufSize);
             filters.init();
@@ -39,14 +39,6 @@ namespace NSpeex
             last_ol_gain = 0;
         }
 
-        public void nbinit()
-        {
-            // Initialize SubModes
-            submodes = buildNbSubModes();
-            submodeID = 5;
-            // Initialize narrwoband parameters and variables
-            init(160, 40, 10, 640);
-        }
         /// <summary>
         /// Decode the given input bits.
         /// </summary>
@@ -527,6 +519,12 @@ namespace NSpeex
         {
             get { return enhanced; }
             set { enhanced = value; }
+        }
+
+
+        public bool Dtx
+        {
+            get { return dtx_enabled != 0; }
         }
     }
 }
